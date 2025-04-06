@@ -16,11 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from streaming.views import disney  
+from streaming.views import create_disney  
+from streaming.views import delete_disney 
+
 
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
-    path('disney', disney),  
+    path('disney/create', create_disney),  
+    path('disney/delete', delete_disney),  
 
 ]
