@@ -18,12 +18,17 @@ from django.contrib import admin
 from django.urls import path
 from streaming.views import create_disney  
 from streaming.views import delete_disney 
-
+from streaming.views import delete_max 
+from streaming.views import create_max 
 
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('disney/create', create_disney),  
     path('disney/delete', delete_disney),  
+    path('max/delete', delete_max),  
+    path('max/create', create_max),  
+
+
 
 ]

@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from django.http import JsonResponse
+from playwright.sync_api import sync_playwright
 import json
 import logging
 import time
@@ -139,3 +140,116 @@ def login_disney(request):
     button.click()
 
     return driver
+
+def delete_max(request):
+    try:
+        request = json.loads(request.body)
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False)  # Iniciar el navegador Chromium
+            page = browser.new_page()  # Crear una nueva página
+
+            # Ir a la URL
+            page.goto('https://auth.max.com/login')
+            time.sleep(2)
+            accept_cookies_button = page.locator('span[data-appearance="LOUD"]:has-text("Aceptar todas las cookies")')
+            accept_cookies_button.click()
+            time.sleep(5)
+
+            email_input = page.locator('gi-login[login-method="DTC"] >> gi-login-username-and-mvpd >> gi-login-username >> input#login-email-input')
+            email_input.fill(request.get('email', None))
+            time.sleep(3)
+            password_input = page.locator('gi-login[login-method="DTC"] >> gi-login-username-and-mvpd >> gi-login-username >> input#login-password-input')
+            password_input.fill(request.get('password', None))
+            time.sleep(3)
+            password_input = page.locator('gi-login[login-method="DTC"] >> gi-login-username-and-mvpd >> gi-login-username >> button:has(div span:has-text("Inicia sesión"))')   
+            password_input.click()
+            time.sleep(5)
+
+            edit_profile_button = page.locator('button[aria-label="Editar"]')
+            edit_profile_button.click()
+            time.sleep(3)
+            profile_name = request.get('profile', None)
+            edit_profile_button = page.locator(f'button:has-text("{profile_name}")')
+            edit_profile_button.click()
+            time.sleep(3)
+            eliminar = page.locator('button:has-text("Eliminar perfil")')
+            eliminar.click()
+            time.sleep(3)
+            eliminar = page.locator('[data-testid="deleteProfile_delete_button"]')
+            eliminar.click()
+
+            time.sleep(5)
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Perfil eliminado correctamente'
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+    
+def create_max(request):
+    try:
+        request = json.loads(request.body)
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False)  # Iniciar el navegador Chromium
+            page = browser.new_page()  # Crear una nueva página
+
+            # Ir a la URL
+            page.goto('https://auth.max.com/login')
+            time.sleep(2)
+            accept_cookies_button = page.locator('span[data-appearance="LOUD"]:has-text("Aceptar todas las cookies")')
+            accept_cookies_button.click()
+            time.sleep(5)
+
+            email_input = page.locator('gi-login[login-method="DTC"] >> gi-login-username-and-mvpd >> gi-login-username >> input#login-email-input')
+            email_input.fill(request.get('email', None))
+            time.sleep(3)
+            password_input = page.locator('gi-login[login-method="DTC"] >> gi-login-username-and-mvpd >> gi-login-username >> input#login-password-input')
+            password_input.fill(request.get('password', None))
+            time.sleep(3)
+            password_input = page.locator('gi-login[login-method="DTC"] >> gi-login-username-and-mvpd >> gi-login-username >> button:has(div span:has-text("Inicia sesión"))')   
+            password_input.click()
+            time.sleep(5)
+            page.locator('a:has-text("Nuevo perfil")').click()
+            time.sleep(3)
+            page.locator('[data-testid="skip_button"]').click()
+            time.sleep(3)
+            page.locator('input#profileName').fill(request.get('profile', None))
+            time.sleep(3)
+            page.locator('[data-testid="save_button"]').click()
+            time.sleep(3)
+            profile_name = request.get('profile', None)
+            edit_profile_button = page.locator(f'button:has-text("{profile_name}")')
+            edit_profile_button.click()
+            time.sleep(5)
+            toggle = page.locator('[data-testid="lockProfile_toggle"]')
+            toggle.click()  # Alterna el estado
+            time.sleep(5)
+            page.locator('input#enter-password-password-input').fill(request.get('password', None))
+            time.sleep(3)
+            page.locator('[data-testid="gisdk.gi-enter-password.submit-button"]').click()
+            time.sleep(3)
+                
+            digits = [str(d) for d in request.get('pin', None)]
+            for i in range(4):
+                field = page.locator(f'input#pin{i}-field-{i}')
+                
+                field.fill(digits[i])
+                
+                page.wait_for_timeout(200) 
+            
+            time.sleep(2)
+            page.locator('button:has-text("Guardar"):visible').click()      
+            time.sleep(5)
+
+
+
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Perfil creado correctamente'
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+    
+
