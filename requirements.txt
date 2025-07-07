@@ -1,0 +1,4 @@
+Django==4.2.20
+selenium==4.11.2
+webdriver-manager==4.0.0
+playwright==1.37.0
