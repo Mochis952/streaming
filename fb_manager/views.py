@@ -58,3 +58,50 @@ def load_existing_session_view(request):
             driver.quit()
     else:
         return JsonResponse({'status': 'error', 'message': f'Could not load session for {account_id}.'}, status=404)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_listing_view(request):
+    """
+    API view to create a new Facebook Marketplace listing.
+    Expects a JSON body with 'account_id' and 'listing_data'.
+    """
+    try:
+        data = json.loads(request.body)
+        account_id = data.get('account_id')
+        listing_data = data.get('listing_data')
+
+        if not account_id or not listing_data:
+            return JsonResponse({'status': 'error', 'message': 'account_id and listing_data are required.'}, status=400)
+
+        result = services.create_marketplace_listing(account_id, listing_data)
+
+        if result.get('status') == 'success':
+            return JsonResponse(result)
+        else:
+            return JsonResponse(result, status=500)
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON body.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_categories_view(request):
+    """
+    API view to get Facebook Marketplace categories.
+    Expects an 'account_id' as a query parameter.
+    """
+    account_id = request.GET.get('account_id')
+    listing_id = request.GET.get('listing_id', '0') # Default to 0 if not provided
+
+    if not account_id:
+        return JsonResponse({'status': 'error', 'message': 'account_id query parameter is required.'}, status=400)
+
+    result = services.get_marketplace_categories(account_id, listing_id)
+
+    if result.get('status') == 'error':
+        return JsonResponse(result, status=404)
+    else:
+        return JsonResponse(result)
