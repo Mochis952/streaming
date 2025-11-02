@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from streaming.views import create_disney  
 from streaming.views import delete_disney 
 from streaming.views import delete_max 
@@ -28,6 +28,7 @@ urlpatterns = [
     path('disney/delete', delete_disney),  
     path('max/delete', delete_max),  
     path('max/create', create_max),  
+    path('facebook/', include('fb_manager.urls')),
 
 
 
